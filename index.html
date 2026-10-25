@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halloweenský Kvíz</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Poppins:wght@400;600;700&display=swap');
+        .font-creepster { font-family: 'Creepster', cursive; }
+        body { font-family: 'Poppins', sans-serif; background-color: #0b071e; color: #f3f4f6; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 relative overflow-x-hidden">
+
+    <!-- Horní lišta / Žebříček tlačítko -->
+    <header class="w-full max-w-4xl flex justify-between items-center py-4 z-10">
+        <h1 class="text-3xl md:text-5xl font-creepster text-orange-500 tracking-wider drop-shadow-[0_2px_10px_rgba(249,115,22,0.5)]">🎃 Halloweenský Kvíz</h1>
+        <button onclick="toggleLeaderboard()" class="bg-purple-900 hover:bg-purple-800 text-orange-300 font-bold px-4 py-2 rounded-xl border border-purple-600 shadow-lg transition transform hover:scale-105 flex items-center gap-2">
+            🏆 Žebříček
+        </button>
+    </header>
+
+    <!-- Hlavní kontejner -->
+    <main class="w-full max-w-2xl bg-gray-900/90 border-2 border-purple-800/60 rounded-2xl shadow-2xl p-6 md:p-8 my-auto relative backdrop-blur-sm">
+
+        <!-- KROK 1: Zadání jména -->
+        <div id="name-screen" class="text-center space-y-6">
+            <h2 class="text-2xl font-bold text-orange-400">Vítejte, poutníku temnot...</h2>
+            <p class="text-gray-300 text-sm">Zadejte své jméno nebo přezdívku (každé jméno může být použito pouze jednou):</p>
+            <input type="text" id="player-name" placeholder="Vaše přezdívka..." maxlength="15" class="w-full max-w-xs px-4 py-3 bg-gray-800 border border-purple-600 rounded-xl text-center text-xl text-orange-300 focus:outline-none focus:border-orange-500">
+            <p id="name-error" class="text-red-400 text-sm hidden font-semibold"></p>
+            <div>
+                <button onclick="startGame()" class="bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-lg px-8 py-3 rounded-xl shadow-lg transition transform hover:scale-105">
+                    Vstoupit do hry 👻
+                </button>
+            </div>
+        </div>
+
+        <!-- KROK 2: Výběr levelů -->
+        <div id="level-screen" class="hidden text-center space-y-6">
+            <h2 class="text-3xl font-creepster text-orange-400">Vyber si úroveň, <span id="display-name" class="text-purple-400"></span></h2>
+            <p class="text-gray-300 text-sm">Každý level lze splnit pouze 1× a nelze ho během hraní restartovat!</p>
+            
+            <div class="grid gap-4 mt-6">
+                <button id="btn-lvl-1" onclick="startLevel(1)" class="w-full bg-gray-800 hover:bg-gray-750 border border-green-600/60 p-4 rounded-xl text-left flex justify-between items-center transition transform hover:scale-[1.02]">
+                    <div>
+                        <div class="font-bold text-lg text-green-400">Level 1: Snadný 🟢</div>
+                        <div class="text-xs text-gray-400">10 otázek pro začátečníky</div>
+                    </div>
+                    <span id="badge-1" class="text-xs px-3 py-1 bg-green-900/50 text-green-300 rounded-full">Spustit</span>
+                </button>
+
+                <button id="btn-lvl-2" onclick="startLevel(2)" class="w-full bg-gray-800 hover:bg-gray-750 border border-yellow-600/60 p-4 rounded-xl text-left flex justify-between items-center transition transform hover:scale-[1.02]">
+                    <div>
+                        <div class="font-bold text-lg text-yellow-400">Level 2: Střední 🟡</div>
+                        <div class="text-xs text-gray-400">10 záludnějších otázek</div>
+                    </div>
+                    <span id="badge-2" class="text-xs px-3 py-1 bg-yellow-900/50 text-yellow-300 rounded-full">Spustit</span>
+                </button>
+
+                <button id="btn-lvl-3" onclick="startLevel(3)" class="w-full bg-gray-800 hover:bg-gray-750 border border-red-600/60 p-4 rounded-xl text-left flex justify-between items-center transition transform hover:scale-[1.02]">
+                    <div>
+                        <div class="font-bold text-lg text-red-400">Level 3: Těžký 🔴</div>
+                        <div class="text-xs text-gray-400">5 expertních otázek pro mistry</div>
+                    </div>
+                    <span id="badge-3" class="text-xs px-3 py-1 bg-red-900/50 text-red-300 rounded-full">Spustit</span>
+                </button>
+            </div>
+
+            <div class="pt-4 border-t border-gray-800 flex justify-between items-center text-sm">
+                <span class="text-orange-300 font-semibold">Celkové skóre: <span id="total-score">0</span> bodů</span>
+            </div>
+        </div>
+
+        <!-- KROK 3: Samotný kvíz -->
+        <div id="quiz-screen" class="hidden space-y-6">
+            <div class="flex justify-between items-center text-sm text-gray-400 border-b border-gray-800 pb-3">
+                <span id="quiz-level-title" class="text-orange-400 font-bold">Level</span>
+                <span>Otázka <span id="current-q">1</span> z <span id="total-q">10</span></span>
+            </div>
+
+            <h3 id="question-text" class="text-xl font-semibold text-gray-100 min-h-[4rem] flex items-center">Otázka</h3>
+
+            <div id="answers-container" class="grid gap-3">
+                <!-- Tlačítka odpovědí -->
+            </div>
+        </div>
+
+        <!-- KROK 4: Výsledek levelu -->
+        <div id="result-screen" class="hidden text-center space-y-6">
+            <h3 class="text-3xl font-creepster text-orange-500">Level dokončen! 🎉</h3>
+            <p class="text-lg text-gray-300">Získali jste <span id="level-score" class="font-bold text-orange-400">0</span> bodů.</p>
+            <p id="level-message" class="text-sm text-purple-300"></p>
+            <div>
+                <button onclick="backToLevels()" class="bg-purple-700 hover:bg-purple-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition">
+                    Pokračovat na výběr levelů
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modální okno: Žebříček -->
+    <div id="leaderboard-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border-2 border-purple-600 w-full max-w-md rounded-2xl p-6 shadow-2xl relative space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="text-2xl font-creepster text-orange-400">🏆 Síň slávy (Žebříček)</h3>
+                <button onclick="toggleLeaderboard()" class="text-gray-400 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+            <div id="leaderboard-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                <!-- Seznam hráčů -->
+            </div>
+            <button onclick="toggleLeaderboard()" class="w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-2 rounded-xl transition">
+                Zavřít
+            </button>
+        </div>
+    </div>
+
+    <footer class="text-center text-xs text-gray-600 py-4">
+        Halloweenský Kvíz &bull; Vytvořeno pro GitHub Pages
+    </footer>
+
+    <script>
+        // Databáze otázek
+        const levelsData = {
+            1: [
+                { q: "Jaké barvy jsou typické pro Halloween?", answers: ["Černá a oranžová", "Modrá a žlutá", "Růžová a zelená"], correct: 0 },
+                { q: "Z čeho se tradičně dlabou halloweenské dýně?", answers: ["Z vodního melounu", "Z dýně", "Z cibule"], correct: 1 },
+                { q: "Jak se říká vyřezané dýni se svíčkou uvnitř?", answers: ["Jack-o'-lantern", "Halloweenka", "Strašidýlko"], correct: 0 },
+                { q: "Co říkají děti, když koledují?", answers: ["Koledu, nebo snědnu tě!", "Koledu, nebo nic!", "Koledu, nebo vám provedeme neplechu!"], correct: 2 },
+                { q: "Které zvíře je nejčastěji spojováno s čarodějnicemi?", answers: ["Zlatý retrívr", "Černá kočka", "Křeček"], correct: 1 },
+                { q: "Ve kterém měsíci se slaví Halloween?", answers: ["Říjen", "Leden", "Květen"], correct: 0 },
+                { q: "Čím se živí upíři podle legend?", answers: ["Krví", "Česnekem", "Slunečním svitem"], correct: 0 },
+                { q: "Kdo nosí kostlivce a duchy na zádech?", answers: ["Nikdo, straší sami", "Dýňový král", "Frankenstein"], correct: 0 },
+                { q: "Jaký kostým na Halloween je klasický?", answers: ["Duch z prostěradla", "Prezident", "Kosmonaut"], correct: 0 },
+                { q: "Která rostlina údajně odhání upíry?", answers: ["Česnek", "Kaktus", "Růže"], correct: 0 }
+            ],
+            2: [
+                { q: "Z jakého starého keltského svátku Halloween částečně vychází?", answers: ["Samhain", "Beltane", "Imbolc"], correct: 0 },
+                { q: "V jaké zemi vznikla tradice Halloweenu v dnešní podobě?", answers: ["V USA", "V Irsku a Velké Británii", "V Itálii"], correct: 1 },
+                { q: "Jak se jmenuje slavný hororový režisér filmu Halloween (1978)?", answers: ["Steven Spielberg", "John Carpenter", "Tim Burton"], correct: 1 },
+                { q: "Co znamená anglické slovo 'Hallowe'en' (All Hallows' Eve)?", answers: ["Předvečer Všech svatých", "Den duchů", "Noc čarodějnic"], correct: 0 },
+                { q: "Jaká mexická obdoba Halloweenu se slaví začátkem listopadu?", answers: ["Dia de los Muertos", "Carnival", "Fiesta de Fuego"], correct: 0 },
+                { q: "Podle pověsti, koho představoval sketa Jack (Jack-o'-lantern)?", answers: ["Lakomého kováře", "Zlého čaroděje", "Poutníka bez domova"], correct: 0 },
+                { q: "Která zelenina se původně v Irsku dlabala dříve, než se objevily americké dýně?", answers: ["Řepa a brambory", "Zelí", "Mrkev"], correct: 0 },
+                { q: "Který slavný autor napsal gotický román Dracula (1897)?", answers: ["Bram Stoker", "Edgar Allan Poe", "Mary Shelley"], correct: 0 },
+                { q: "Která magická bytost prý může létat na koštěti?", answers: ["Čarodějnice", "Víla", "Upír"], correct: 0 },
+                { q: "Co symbolizuje pavučina v halloweenské výzdobě?", answers: ["Stáří, opuštěnost a strach", "Čistotu", "Štěstí"], correct: 0 }
+            ],
+            3: [
+                { q: "Ve kterém roce byl natočen kultovní hororový film 'Halloween' s postavou Michaela Myerse?", answers: ["1978", "1984", "1990"], correct: 0 },
+                { q: "Jak se jmenuje fiktivní městečko v Illinois, kde se odehrává film Halloween?", answers: ["Haddonfield", "Springfield", "Derry"], correct: 0 },
+                { q: "Která autorka napsala slavný román 'Frankenstein' v roce 1818?", answers: ["Mary Shelley", "Agatha Christie", "Jane Austen"], correct: 0 },
+                { q: "V jaké hře se poprvé objevily vyřezávané dýně jako svítící bloky (v roce 2010)?", answers: ["Minecraft", "World of Warcraft", "Terraria"], correct: 0 },
+                { q: "Podle starých keltských mýtů, co se dělo během noci Samhainu?", answers: ["Svět živých a mrtvých se prolínal", "Slunce vůbec nevyšlo", "Lidé ztratili schopnost mluvit"], correct: 0 }
+            ]
+        };
+
+        // Stav hry
+        let playerName = "";
+        let totalScore = 0;
+        let completedLevels = { 1: false, 2: false, 3: false };
+        let currentLevel = 1;
+        let currentQuestionIndex = 0;
+        let levelScore = 0;
+
+        // Kontrola jména a spuštění hry
+        function startGame() {
+            const input = document.getElementById('player-name');
+            const errorElement = document.getElementById('name-error');
+            const name = input.value.trim();
+
+            if (!name) {
+                errorElement.innerText = "Prosím zadej své jméno!";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            // Načíst existující žebříček
+            let lb = JSON.parse(localStorage.getItem('halloween_lb') || '[]');
+            
+            // Zkontrolovat, zda už jméno v žebříčku neexistuje (nezávisle na velikosti písmen)
+            let isNameTaken = lb.some(item => item.name.toLowerCase() === name.toLowerCase());
+
+            if (isNameTaken) {
+                errorElement.innerText = "Toto jméno je již zabrané! Vyber si prosím jiné.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            errorElement.classList.add('hidden');
+            playerName = name;
+            document.getElementById('display-name').innerText = playerName;
+            
+            document.getElementById('name-screen').classList.add('hidden');
+            document.getElementById('level-screen').classList.remove('hidden');
+            updateUI();
+        }
+
+        // Aktualizace tlačítek podle toho, co už je hotové
+        function updateUI() {
+            document.getElementById('total-score').innerText = totalScore;
+            
+            for(let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`btn-lvl-${i}`);
+                const badge = document.getElementById(`badge-${i}`);
+                if(completedLevels[i]) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    badge.innerText = "Dokončeno ✅";
+                    badge.className = "text-xs px-3 py-1 bg-gray-700 text-gray-400 rounded-full";
+                }
+            }
+        }
+
+        // Spuštění vybraného levelu
+        function startLevel(lvl) {
+            if(completedLevels[lvl]) return;
+            currentLevel = lvl;
+            currentQuestionIndex = 0;
+            levelScore = 0;
+
+            document.getElementById('level-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('quiz-level-title').innerText = `Level ${lvl} (${levelsData[lvl].length} otázek)`;
+            document.getElementById('total-q').innerText = levelsData[lvl].length;
+
+            loadQuestion();
+        }
+
+        // Načtení otázky
+        function loadQuestion() {
+            const qData = levelsData[currentLevel][currentQuestionIndex];
+            document.getElementById('current-q').innerText = currentQuestionIndex + 1;
+            document.getElementById('question-text').innerText = qData.q;
+
+            const container = document.getElementById('answers-container');
+            container.innerHTML = "";
+
+            qData.answers.forEach((ans, index) => {
+                const btn = document.createElement('button');
+                btn.innerText = ans;
+                btn.className = "w-full text-left p-3.5 rounded-xl bg-gray-800 hover:bg-purple-900/60 border border-purple-900/40 transition text-gray-200 font-medium";
+                btn.onclick = () => checkAnswer(index, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        // Kontrola odpovědi
+        function checkAnswer(selectedIndex, btnElement) {
+            const qData = levelsData[currentLevel][currentQuestionIndex];
+            const buttons = document.getElementById('answers-container').children;
+
+            // Zablokovat všechna tlačítka
+            for(let b of buttons) b.disabled = true;
+
+            if(selectedIndex === qData.correct) {
+                btnElement.classList.add('bg-green-900/80', 'border-green-500');
+                levelScore += 10;
+            } else {
+                btnElement.classList.add('bg-red-900/80', 'border-red-500');
+                buttons[qData.correct].classList.add('bg-green-900/80', 'border-green-500');
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if(currentQuestionIndex < levelsData[currentLevel].length) {
+                    loadQuestion();
+                } else {
+                    finishLevel();
+                }
+            }, 1200);
+        }
+
+        // Dokončení levelu
+        function finishLevel() {
+            completedLevels[currentLevel] = true;
+            totalScore += levelScore;
+
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('level-score').innerText = levelScore;
+            document.getElementById('level-message').innerText = `Skvělá práce, ${playerName}! Level ${currentLevel} je úspěšně uzavřen.`;
+
+            // Uložit do žebříčku
+            saveToLeaderboard(playerName, totalScore);
+            updateUI();
+        }
+
+        // Zpět na výběr levelů
+        function backToLevels() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('level-screen').classList.remove('hidden');
+            
+            // Kontrola, jestli jsou hotové všechny levely
+            if(completedLevels[1] && completedLevels[2] && completedLevels[3]) {
+                alert(`Hra dokončena! Celkově jsi nasbíral ${totalScore} bodů.`);
+            }
+        }
+
+        // Práce se žebříčkem (localStorage)
+        function saveToLeaderboard(name, score) {
+            let lb = JSON.parse(localStorage.getItem('halloween_lb') || '[]');
+            let existing = lb.find(item => item.name.toLowerCase() === name.toLowerCase());
+            if(existing) {
+                if(score > existing.score) existing.score = score;
+            } else {
+                lb.push({ name: name, score: score });
+            }
+            lb.sort((a, b) => b.score - a.score);
+            localStorage.setItem('halloween_lb', JSON.stringify(lb));
+        }
+
+        // Zobrazení / skrytí žebříčku
+        function toggleLeaderboard() {
+            const modal = document.getElementById('leaderboard-modal');
+            modal.classList.toggle('hidden');
+
+            if(!modal.classList.contains('hidden')) {
+                const listContainer = document.getElementById('leaderboard-list');
+                let lb = JSON.parse(localStorage.getItem('halloween_lb') || '[]');
+                
+                if(lb.length === 0) {
+                    listContainer.innerHTML = `<p class="text-center text-gray-500 py-4">Zatím žádné záznamy v žebříčku.</p>`;
+                } else {
+                    listContainer.innerHTML = lb.map((item, index) => `
+                        <div class="flex justify-between items-center bg-gray-800/80 p-3 rounded-xl border border-purple-900/40">
+                            <span class="font-bold text-orange-400">#${index + 1} ${item.name}</span>
+                            <span class="text-purple-300 font-semibold">${item.score} bodů</span>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
